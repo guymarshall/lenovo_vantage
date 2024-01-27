@@ -9,7 +9,7 @@ use crossterm::{
 };
 use ratatui::{prelude::*, widgets::*};
 use crate::constants::{CONSERVATION_MODE, FN_LOCK};
-use crate::file_utilities::file_exists;
+use crate::file_utilities::{file_exists, read_file};
 
 mod file_utilities;
 mod constants;
@@ -74,12 +74,26 @@ fn ui(frame: &mut Frame) {
         [Constraint::Percentage(50), Constraint::Percentage(50)],
     )
         .split(main_layout[1]);
+
     frame.render_widget(
-        Block::default().borders(Borders::ALL).title("Key"),
+        List::new(["Fn Lock", "Conservation Mode"])
+            .block(Block::default().title("Settings").borders(Borders::ALL))
+            .style(Style::default().fg(Color::White))
+            .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true)
+            .direction(ListDirection::TopToBottom),
         inner_layout[0],
     );
+
     frame.render_widget(
-        Block::default().borders(Borders::ALL).title("Value"),
+        List::new([read_file(FN_LOCK), read_file(CONSERVATION_MODE)])
+            .block(Block::default().title("Values").borders(Borders::ALL))
+            .style(Style::default().fg(Color::White))
+            .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true)
+            .direction(ListDirection::TopToBottom),
         inner_layout[1],
     );
 }

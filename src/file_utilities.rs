@@ -9,8 +9,8 @@ pub fn file_exists(file_path: &str) -> Result<(), io::Error> {
     }
 }
 
-pub fn read_file(file_path: &str) -> Result<String, io::Error> {
-    fs::read_to_string(file_path)
+pub fn read_file(file_path: &str) -> String {
+    fs::read_to_string(file_path).unwrap_or("".to_string())
 }
 
 pub fn write_to_file(file_path: &str, contents: &str) -> io::Result<()> {
