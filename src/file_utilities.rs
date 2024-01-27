@@ -13,6 +13,6 @@ pub fn read_file(file_path: &str) -> String {
     fs::read_to_string(file_path).unwrap_or("".to_string())
 }
 
-pub fn write_to_file(file_path: &str, contents: &str) -> io::Result<()> {
+pub fn write_to_file(file_path: &str, contents: String) -> io::Result<()> {
     fs::write(file_path, contents)
 }
