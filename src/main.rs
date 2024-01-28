@@ -50,7 +50,6 @@ fn main() -> io::Result<()> {
 
     check_files_exist();
 
-    println!("Sudo is required to run this program.");
     escalate_if_needed().expect("Failed to escalate to sudo");
 
     enable_raw_mode()?;
