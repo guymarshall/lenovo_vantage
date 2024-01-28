@@ -1,4 +1,6 @@
 #![forbid(unsafe_code)]
+
+use std::env;
 use std::io::{self, stdout, Stdout};
 use std::rc::Rc;
 
@@ -8,6 +10,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{prelude::*, widgets::*};
+use sudo::escalate_if_needed;
 use crate::constants::{CONSERVATION_MODE, FN_LOCK};
 use crate::file_utilities::{file_exists, read_file, write_to_file};
 
@@ -40,7 +43,15 @@ impl App {
 }
 
 fn main() -> io::Result<()> {
+    if env::consts::OS != "linux" {
+        eprintln!("Error: This program is intended to run on Linux only.");
+        std::process::exit(1);
+    }
+
     check_files_exist();
+
+    println!("Sudo is required to run this program.");
+    escalate_if_needed().expect("Failed to escalate to sudo");
 
     enable_raw_mode()?;
     stdout().execute(EnterAlternateScreen)?;
@@ -74,26 +85,33 @@ fn check_files_exist() {
 fn handle_events(app: &mut App) -> io::Result<bool> {
     if event::poll(std::time::Duration::from_millis(50))? {
         if let Event::Key(key) = event::read()? {
-            if key.kind == event::KeyEventKind::Press { match key.code {
-                KeyCode::Char('q') => return Ok(true),
-                KeyCode::Up => {
-                    app.selected_setting = match app.selected_setting {
-                        Setting::FnLock => Setting::ConservationMode,
-                        Setting::ConservationMode => Setting::FnLock,
-                    };
+            if key.kind == event::KeyEventKind::Press {
+                match key.code {
+                    KeyCode::Char('q') => return Ok(true),
+                    KeyCode::Esc => return Ok(true),
+                    // TODO: add ctrl + c to quit
+                    KeyCode::Up | KeyCode::Down => app.toggle_selected_setting(),
+                    KeyCode::Left => change_selected_setting_value(app, "0".to_string()),
+                    KeyCode::Right => change_selected_setting_value(app, "1".to_string()),
+                    KeyCode::Enter => write_selected_setting(app),
+                    _ => {}
                 }
-                KeyCode::Down => {
-                    app.selected_setting = match app.selected_setting {
-                        Setting::FnLock => Setting::ConservationMode,
-                        Setting::ConservationMode => Setting::FnLock,
-                    };
-                }
-                KeyCode::Enter => write_selected_setting(app), // Handle enter key
-                _ => {}
-            } }
+            }
         }
     }
     Ok(false)
+}
+
+fn change_selected_setting_value(app: &mut App, new_value: String) {
+    let current_value: String = match app.selected_setting {
+        Setting::FnLock => read_file(FN_LOCK),
+        Setting::ConservationMode => read_file(CONSERVATION_MODE),
+    };
+
+    match app.selected_setting {
+        Setting::FnLock => write_to_file(FN_LOCK, new_value),
+        Setting::ConservationMode => write_to_file(CONSERVATION_MODE, new_value),
+    }.expect("Failed to write to file");
 }
 
 fn write_selected_setting(app: &App) {
@@ -101,7 +119,6 @@ fn write_selected_setting(app: &App) {
         Setting::FnLock => write_to_file(FN_LOCK, toggle_value(read_file(FN_LOCK))),
         Setting::ConservationMode => write_to_file(CONSERVATION_MODE, toggle_value(read_file(CONSERVATION_MODE))),
     }.expect("Failed to write to file");
-    println!("Setting saved!");
 }
 
 fn toggle_value(value: String) -> String {
