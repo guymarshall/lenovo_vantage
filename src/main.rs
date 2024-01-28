@@ -34,6 +34,8 @@ impl App {
         }
     }
 
+    // TODO: instead of toggling 1 to 0 or 0 to 1, decrease by left arrow, increase by right arrow
+    // TODO: this will be necessary when more settings are added
     fn toggle_selected_setting(&mut self) {
         match self.selected_setting {
             Setting::FnLock => self.selected_setting = Setting::ConservationMode,
