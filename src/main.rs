@@ -9,6 +9,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use crossterm::event::KeyModifiers;
 use ratatui::{prelude::*, widgets::*};
 use sudo::escalate_if_needed;
 use crate::constants::{CONSERVATION_MODE, FN_LOCK};
@@ -90,7 +91,7 @@ fn handle_events(app: &mut App) -> io::Result<bool> {
                 match key.code {
                     KeyCode::Char('q') => return Ok(true),
                     KeyCode::Esc => return Ok(true),
-                    // TODO: add ctrl + c to quit
+                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return Ok(true),
                     KeyCode::Up | KeyCode::Down => app.toggle_selected_setting(),
                     KeyCode::Left => change_selected_setting_value(app, "0".to_string()),
                     KeyCode::Right => change_selected_setting_value(app, "1".to_string()),
