@@ -75,10 +75,11 @@ fn handle_events(app: &mut App) -> io::Result<bool> {
                     KeyCode::Char('q') => return Ok(true),
                     KeyCode::Esc => return Ok(true),
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => return Ok(true),
+
                     KeyCode::Up | KeyCode::Down => app.toggle_selected_setting(),
+
                     KeyCode::Left => change_selected_setting_value(app, "0".to_string()),
                     KeyCode::Right => change_selected_setting_value(app, "1".to_string()),
-                    KeyCode::Enter => write_selected_setting(app),
                     _ => {}
                 }
             }
@@ -97,21 +98,6 @@ fn change_selected_setting_value(app: &mut App, new_value: String) {
         Setting::FnLock => write_to_file(FN_LOCK, new_value),
         Setting::ConservationMode => write_to_file(CONSERVATION_MODE, new_value),
     }.expect("Failed to write to file");
-}
-
-fn write_selected_setting(app: &App) {
-    match app.selected_setting {
-        Setting::FnLock => write_to_file(FN_LOCK, toggle_value(read_file(FN_LOCK))),
-        Setting::ConservationMode => write_to_file(CONSERVATION_MODE, toggle_value(read_file(CONSERVATION_MODE))),
-    }.expect("Failed to write to file");
-}
-
-fn toggle_value(value: String) -> String {
-    match value.as_str() {
-        "0" => "1".to_string(),
-        "1" => "0".to_string(),
-        _ => value,
-    }
 }
 
 fn ui(frame: &mut Frame, app: &App) {
