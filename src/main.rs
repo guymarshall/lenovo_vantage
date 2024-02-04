@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 
-use std::env;
 use std::io::{self, stdout, Stdout};
 use std::rc::Rc;
 
@@ -13,7 +12,7 @@ use crossterm::event::KeyModifiers;
 use ratatui::{prelude::*, widgets::*};
 use sudo::escalate_if_needed;
 use crate::constants::{CONSERVATION_MODE, FN_LOCK};
-use crate::file_utilities::{file_exists, read_file, write_to_file};
+use crate::file_utilities::{read_file, write_to_file, check_is_linux, check_files_exist};
 
 mod file_utilities;
 mod constants;
@@ -46,11 +45,7 @@ impl App {
 }
 
 fn main() -> io::Result<()> {
-    if env::consts::OS != "linux" {
-        eprintln!("Error: This program is intended to run on Linux only.");
-        std::process::exit(1);
-    }
-
+    check_is_linux();
     check_files_exist();
 
     escalate_if_needed().expect("Failed to escalate to sudo");
@@ -70,18 +65,6 @@ fn main() -> io::Result<()> {
     disable_raw_mode()?;
     stdout().execute(LeaveAlternateScreen)?;
     Ok(())
-}
-
-fn check_files_exist() {
-    if let Err(err) = file_exists(CONSERVATION_MODE) {
-        eprintln!("Error: {}", err);
-        std::process::exit(1);
-    }
-
-    if let Err(err) = file_exists(FN_LOCK) {
-        eprintln!("Error: {}", err);
-        std::process::exit(1);
-    }
 }
 
 fn handle_events(app: &mut App) -> io::Result<bool> {
