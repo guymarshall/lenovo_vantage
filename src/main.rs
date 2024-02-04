@@ -11,7 +11,7 @@ use crossterm::{
 use crossterm::event::KeyModifiers;
 use ratatui::{prelude::*, widgets::*};
 use sudo::escalate_if_needed;
-use crate::constants::{CONSERVATION_MODE, FN_LOCK};
+use crate::constants::{BRIGHTNESS, CONSERVATION_MODE, FAN_MODE, FN_LOCK};
 use crate::file_utilities::{read_file, write_to_file, check_is_linux, check_files_exist};
 
 mod file_utilities;
@@ -135,17 +135,27 @@ fn ui(frame: &mut Frame, app: &App) {
     )
         .split(main_layout[1]);
 
-    let settings = ["Fn Lock", "Conservation Mode"];
-    let values = [read_file(FN_LOCK), read_file(CONSERVATION_MODE)];
+    let settings: [&str; 4] = [
+        "Fn Lock",
+        "Conservation Mode",
+        "Fan Mode",
+        "Keyboard Backlight",
+    ];
+    let values: [String; 4] = [
+        read_file(FN_LOCK),
+        read_file(CONSERVATION_MODE),
+        read_file(FAN_MODE),
+        read_file(BRIGHTNESS),
+    ];
 
-    let settings_list = List::new(settings.iter().cloned().map(Text::raw))
+    let settings_list: List = List::new(settings.iter().cloned().map(Text::raw))
         .block(Block::default().title("Settings").borders(Borders::ALL))
         .style(Style::default().fg(Color::White))
         .direction(ListDirection::TopToBottom);
 
     frame.render_widget(settings_list, inner_layout[0]);
 
-    let values_list = List::new(
+    let values_list: List = List::new(
         values
             .iter()
             .cloned()

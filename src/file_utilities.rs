@@ -1,5 +1,5 @@
 use std::{env, fs, io};
-use crate::constants::{CONSERVATION_MODE, FN_LOCK};
+use crate::constants::{BRIGHTNESS, CONSERVATION_MODE, FAN_MODE, FN_LOCK};
 
 
 fn file_exists(file_path: &str) -> Result<(), io::Error> {
@@ -26,12 +26,22 @@ pub fn check_is_linux() {
 }
 
 pub fn check_files_exist() {
+    if let Err(err) = file_exists(FN_LOCK) {
+        eprintln!("Error: {}", err);
+        std::process::exit(1);
+    }
+
     if let Err(err) = file_exists(CONSERVATION_MODE) {
         eprintln!("Error: {}", err);
         std::process::exit(1);
     }
 
-    if let Err(err) = file_exists(FN_LOCK) {
+    if let Err(err) = file_exists(FAN_MODE) {
+        eprintln!("Error: {}", err);
+        std::process::exit(1);
+    }
+
+    if let Err(err) = file_exists(BRIGHTNESS) {
         eprintln!("Error: {}", err);
         std::process::exit(1);
     }
